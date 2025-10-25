@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Agent Verification Page</title>
+  <title>Course Verification | Bizera</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -59,7 +59,6 @@
       margin-top: 10px;
       font-size: 14px;
     }
-    /* Loader styling */
     .loader {
       border: 6px solid #f3f3f3; 
       border-top: 6px solid #25D366; 
@@ -71,18 +70,15 @@
       margin: 10px auto 0;
     }
     @keyframes spin {
-      0% { transform: rotate(0deg);}
-      100% { transform: rotate(360deg);}
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
 
   <!-- YouTube video -->
-  <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-          title="YouTube video"
-          frameborder="0"
-          allowfullscreen></iframe>
+  <iframe id="videoFrame" src="" title="Course Video" frameborder="0" allowfullscreen></iframe>
 
   <!-- Agent Verification Form -->
   <div class="form-box">
@@ -95,7 +91,29 @@
   </div>
 
   <script>
-    let currentAgentCode = ""; // store agent code globally for callback
+    // Extract URL parameters (courseName, courseOwner, video)
+    const params = new URLSearchParams(window.location.search);
+    const courseName = params.get("courseName") || "Unknown Course";
+    const courseOwner = params.get("courseOwner") || "Unknown Owner";
+    const videoLink = params.get("video") || "";
+
+    // Convert YouTube link to embeddable format
+    const embedUrl = convertYouTubeLink(videoLink);
+    document.getElementById("videoFrame").src = embedUrl;
+
+    function convertYouTubeLink(link) {
+      if (!link) return "https://www.youtube.com/embed/";
+      try {
+        let videoId = "";
+        if (link.includes("watch?v=")) videoId = link.split("watch?v=")[1].split("&")[0];
+        else if (link.includes("youtu.be/")) videoId = link.split("youtu.be/")[1].split("?")[0];
+        return `https://www.youtube.com/embed/${videoId}`;
+      } catch {
+        return "https://www.youtube.com/embed/";
+      }
+    }
+
+    let currentAgentCode = "";
 
     function verifyAgent() {
       const input = document.getElementById('agentCode');
@@ -103,8 +121,7 @@
       const errorMsg = document.getElementById('errorMsg');
       const loader = document.getElementById('loader');
       errorMsg.textContent = '';
-      loader.style.display = "block"; // show loader
-      console.log("code", code);
+      loader.style.display = "block";
 
       if (!code) {
         loader.style.display = "none";
@@ -112,13 +129,10 @@
         return;
       }
 
-      currentAgentCode = code; // store globally for JSONP callback
-      console.log("currentcode", currentAgentCode);
-
+      currentAgentCode = code;
       const scriptUrl = "https://script.google.com/macros/s/AKfycby0e8eXilChDhT6d8Cr7m7krVppKJ_qxJVcI3V8cviQjLpIzhhGe0hiHte4_s1DwSk/exec";
       const callbackName = "handleResponse";
 
-      // Remove any previous script tag to avoid multiple callbacks
       const oldScript = document.getElementById('jsonpScript');
       if (oldScript) oldScript.remove();
 
@@ -132,17 +146,17 @@
     function handleResponse(data) {
       const errorMsg = document.getElementById('errorMsg');
       const loader = document.getElementById('loader');
-      loader.style.display = "none"; // hide loader
-      console.log("response", data);
-      
+      loader.style.display = "none";
+
       if (data.valid) {
-        const whatsappUrl = `https://wa.me/${+918590037942}?text=${encodeURIComponent("Message | Agent Code: " + currentAgentCode)}`;
+        const whatsappNumber = "918590037942"; // Your number
+        const message = `Hi, I’m interested in the course "${courseName}" by ${courseOwner}. Agent Code: ${currentAgentCode}`;
+        const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
         window.location.href = whatsappUrl;
       } else {
         errorMsg.textContent = "Invalid agent code.";
       }
     }
   </script>
-
 </body>
 </html>
