@@ -208,8 +208,8 @@
   <script>
     // Extract URL parameters
     const params = new URLSearchParams(window.location.search);
-    const courseName = params.get("courseName") || "Unknown Course";
-    const courseOwner = params.get("courseOwner") || "Unknown Owner";
+    const courseName = params.get("Name") || "Unknown Course";
+    const courseOwner = params.get("Owner") || "Unknown Owner";
     const videoLink = params.get("video") || "";
 
     // Convert YouTube link to embeddable format
