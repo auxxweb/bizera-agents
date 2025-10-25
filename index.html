@@ -31,6 +31,7 @@
       width: 100%;
       max-width: 400px;
       text-align: center;
+      position: relative;
     }
     input {
       width: 80%;
@@ -58,6 +59,21 @@
       margin-top: 10px;
       font-size: 14px;
     }
+    /* Loader styling */
+    .loader {
+      border: 6px solid #f3f3f3; 
+      border-top: 6px solid #25D366; 
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      display: none;
+      margin: 10px auto 0;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg);}
+      100% { transform: rotate(360deg);}
+    }
   </style>
 </head>
 <body>
@@ -75,6 +91,7 @@
     <br>
     <button onclick="verifyAgent()">Submit</button>
     <div id="errorMsg" class="error"></div>
+    <div id="loader" class="loader"></div>
   </div>
 
   <script>
@@ -84,16 +101,20 @@
       const input = document.getElementById('agentCode');
       const code = input.value.trim();
       const errorMsg = document.getElementById('errorMsg');
+      const loader = document.getElementById('loader');
       errorMsg.textContent = '';
-console.log("code",code);
+      loader.style.display = "block"; // show loader
+      console.log("code", code);
 
       if (!code) {
+        loader.style.display = "none";
         errorMsg.textContent = "Please enter an agent code.";
         return;
       }
 
       currentAgentCode = code; // store globally for JSONP callback
-console.log("currentcode",currentAgentCode);
+      console.log("currentcode", currentAgentCode);
+
       const scriptUrl = "https://script.google.com/macros/s/AKfycby0e8eXilChDhT6d8Cr7m7krVppKJ_qxJVcI3V8cviQjLpIzhhGe0hiHte4_s1DwSk/exec";
       const callbackName = "handleResponse";
 
@@ -110,7 +131,9 @@ console.log("currentcode",currentAgentCode);
     // JSONP callback function
     function handleResponse(data) {
       const errorMsg = document.getElementById('errorMsg');
-      console.log("response",data);
+      const loader = document.getElementById('loader');
+      loader.style.display = "none"; // hide loader
+      console.log("response", data);
       
       if (data.valid) {
         const whatsappUrl = `https://wa.me/${+918590037942}?text=${encodeURIComponent("Message | Agent Code: " + currentAgentCode)}`;
@@ -123,4 +146,3 @@ console.log("currentcode",currentAgentCode);
 
 </body>
 </html>
-
