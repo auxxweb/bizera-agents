@@ -78,38 +78,49 @@
   </div>
 
   <script>
-    async function verifyAgent() {
-      const code = document.getElementById('agentCode').value.trim();
+    let currentAgentCode = ""; // store agent code globally for callback
+
+    function verifyAgent() {
+      const input = document.getElementById('agentCode');
+      const code = input.value.trim();
       const errorMsg = document.getElementById('errorMsg');
       errorMsg.textContent = '';
+console.log("code",code);
 
       if (!code) {
-        errorMsg.textContent = 'Please enter your agent code.';
+        errorMsg.textContent = "Please enter an agent code.";
         return;
       }
 
-      // Replace with your Google Apps Script URL
-      const apiUrl = `https://script.google.com/macros/s/AKfycbytdTwODYSxZzySUDmPYpi_5d7P9sBk3owrQRy39ws9AvIy3Rc-Twjif6doK_FLfANp/exec?code=${encodeURIComponent(code)}`;
+      currentAgentCode = code; // store globally for JSONP callback
+console.log("currentcode",currentAgentCode);
+      const scriptUrl = "https://script.google.com/macros/s/AKfycby0e8eXilChDhT6d8Cr7m7krVppKJ_qxJVcI3V8cviQjLpIzhhGe0hiHte4_s1DwSk/exec";
+      const callbackName = "handleResponse";
 
-      try {
-        const res = await fetch(apiUrl);
-        const data = await res.json();
+      // Remove any previous script tag to avoid multiple callbacks
+      const oldScript = document.getElementById('jsonpScript');
+      if (oldScript) oldScript.remove();
 
-        if (data.valid) {
-          // Get message param from URL
-          const params = new URLSearchParams(window.location.search);
-          const message = params.get("message") || "Customer enquiry";
-          const whatsappUrl = `https://wa.me/${+918590037942}?text=${encodeURIComponent(message + " | Agent Code: " + code)}`;
-          window.location.href = whatsappUrl;
-        } else {
-          errorMsg.textContent = "Invalid agent code. Please try again.";
-        }
-      } catch (err) {
-        errorMsg.textContent = "Error connecting to the server.";
-        console.error(err);
+      const script = document.createElement('script');
+      script.src = `${scriptUrl}?code=${encodeURIComponent(code)}&callback=${callbackName}`;
+      script.id = "jsonpScript";
+      document.body.appendChild(script);
+    }
+
+    // JSONP callback function
+    function handleResponse(data) {
+      const errorMsg = document.getElementById('errorMsg');
+      console.log("response",data);
+      
+      if (data.valid) {
+        const whatsappUrl = `https://wa.me/${+918590037942}?text=${encodeURIComponent("Message | Agent Code: " + currentAgentCode)}`;
+        window.location.href = whatsappUrl;
+      } else {
+        errorMsg.textContent = "Invalid agent code.";
       }
     }
   </script>
 
 </body>
 </html>
+
