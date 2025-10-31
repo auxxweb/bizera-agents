@@ -134,24 +134,30 @@
     <button onclick="submitEnquiry()">Submit Enquiry</button>
   </div>
 
-  <a href="https://wa.me/919876543210" target="_blank" class="float-btn">💬</a>
+  <!-- Floating WhatsApp Icon -->
+  <a id="waLink" href="#" target="_blank" class="float-btn">💬</a>
 
   <footer>© 2025 Bizera | All Rights Reserved</footer>
 
   <script>
-    // ✅ Your Script URLs
+    // ✅ Script URLs
     const AGENT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyzEm4JzNL40nS86DozqL5fQzp0L4qlV_VWxz98fWexSR7z0fxgrVciDkH4D5354gsK/exec";
     const SUBMIT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz9O6yjeN0gz5j0XNpCXBun3lBno-S6iZuiPjtjNtr-vZeKug4ci9qWJ5vn6r5zc0VTTQ/exec";
 
+    // ✅ Extract parameters
     const params = new URLSearchParams(window.location.search);
     const courseName = params.get("Name") || "Unknown";
     const courseOwner = params.get("Owner") || "Unknown";
     const videoLink = params.get("video") || "";
-    const whatsappNumber = params.get("whatsapp") || "917012903614";
+    const whatsappNumber = params.get("whatsapp") || "917012903614"; // default fallback
 
+    // ✅ Update Page Content
     document.getElementById("courseTitle").textContent = courseName;
     document.getElementById("courseOwner").textContent = "by " + courseOwner;
     document.getElementById("videoFrame").src = convertYouTubeLink(videoLink);
+
+    // ✅ Update floating WhatsApp button dynamically
+    document.getElementById("waLink").href = `https://wa.me/${whatsappNumber}`;
 
     function convertYouTubeLink(link) {
       if (!link) return "";
@@ -161,6 +167,7 @@
       return `https://www.youtube.com/embed/${id}`;
     }
 
+    // ✅ Submit Enquiry Function
     async function submitEnquiry() {
       document.getElementById("loaderOverlay").style.display = "flex";
       const code = document.getElementById('agentCode').value.trim() || 'bizera';
@@ -176,22 +183,20 @@
       }
 
       try {
-        // ✅ 1. Validate Agent
+        // 1️⃣ Validate Agent
         const agentRes = await fetch(`${AGENT_SCRIPT_URL}?code=${encodeURIComponent(code)}`);
         const agentData = await agentRes.json();
-
         if (!agentData.valid) throw new Error("Invalid agent code.");
 
-        // ✅ 2. Submit Data
+        // 2️⃣ Submit Enquiry to Sheet
         const submitUrl = `${SUBMIT_SCRIPT_URL}?action=submit&name=${encodeURIComponent(name)}&mobile=${encodeURIComponent(mobile)}&product=${encodeURIComponent(courseName)}&company=${encodeURIComponent(courseOwner)}&agent=${encodeURIComponent(code)}`;
         const submitRes = await fetch(submitUrl);
         const submitData = await submitRes.json();
-
         if (!submitData.success) throw new Error("Something went wrong while submitting data.");
 
-        // ✅ 3. Redirect to WhatsApp
+        // 3️⃣ Redirect to WhatsApp (company number)
         const msg = `Hi, I'm ${name} (${mobile}). I'm interested in "${courseName}" by ${courseOwner}. Agent Code: ${code}`;
-        const waUrl = `https://wa.me/${agentData.number || whatsappNumber}?text=${encodeURIComponent(msg)}`;
+        const waUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(msg)}`;
         window.location.href = waUrl;
 
       } catch (err) {
