@@ -158,7 +158,7 @@
   <footer>© 2025 Bizera | All Rights Reserved</footer>
 
   <script>
-    const scriptUrl = "https://script.google.com/macros/s/AKfycbwIPR0JxKXEq3ixWHoBc-NtToFvMTxHz4hh5x44otHQTieGbfUTR3lDeqOUpZLZhoHEMQ/exec";
+    const scriptUrl = "https://script.google.com/macros/s/AKfycbxDQDGQZCDQPD-V5_GLR_e2EAuEN2p5Ae1h49YtYj5TFJclhE5tYHzd2W2GLLlWU9JTnQ/exec";
     const urlParams = new URLSearchParams(window.location.search);
     const selectedCategory = urlParams.get("category");
     let allData = [];
@@ -200,7 +200,7 @@
         const whatsapp = item.Whatsapp || item["WhatsApp"] || "";
         const category = item.category;
 
-        const enquiryUrl = `index.html?Name=${encodeURIComponent(name)}&Owner=${encodeURIComponent(company)}&video=${encodeURIComponent(video)}&whatsapp=${encodeURIComponent(whatsapp)}&category=${encodeURIComponent(category)}`;
+        const enquiryUrl = `https://auxxweb.github.io/bizera-agents?Name=${encodeURIComponent(name)}&Owner=${encodeURIComponent(company)}&video=${encodeURIComponent(video)}&whatsapp=${encodeURIComponent(whatsapp)}&category=${encodeURIComponent(category)}`;
 
         const card = document.createElement("div");
         card.className = "card";
