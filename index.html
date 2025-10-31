@@ -91,7 +91,6 @@
       z-index: 10;
     }
 
-    /* Loader Overlay */
     #loaderOverlay {
       position: fixed;
       top: 0; left: 0;
@@ -127,9 +126,12 @@
     <iframe id="videoFrame" src="" allowfullscreen></iframe>
     <h2 id="courseTitle"></h2>
     <p id="courseOwner"></p>
+
+    <input type="text" id="customerName" placeholder="Enter your Name">
+    <input type="text" id="customerMobile" placeholder="Enter your Mobile Number">
     <input type="text" id="agentCode" placeholder="Enter your Agent Code (use 'bizera' if none)">
     <div class="error" id="errorMsg"></div>
-    <button onclick="verifyAgent()">Submit Enquiry</button>
+    <button onclick="submitEnquiry()">Submit Enquiry</button>
   </div>
 
   <a href="https://wa.me/919876543210" target="_blank" class="float-btn">💬</a>
@@ -137,6 +139,10 @@
   <footer>© 2025 Bizera | All Rights Reserved</footer>
 
   <script>
+    // ✅ Your Script URLs
+    const AGENT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyzEm4JzNL40nS86DozqL5fQzp0L4qlV_VWxz98fWexSR7z0fxgrVciDkH4D5354gsK/exec";
+    const SUBMIT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz9O6yjeN0gz5j0XNpCXBun3lBno-S6iZuiPjtjNtr-vZeKug4ci9qWJ5vn6r5zc0VTTQ/exec";
+
     const params = new URLSearchParams(window.location.search);
     const courseName = params.get("Name") || "Unknown";
     const courseOwner = params.get("Owner") || "Unknown";
@@ -155,35 +161,43 @@
       return `https://www.youtube.com/embed/${id}`;
     }
 
-    let currentAgentCode = "";
-
-    async function verifyAgent() {
+    async function submitEnquiry() {
       document.getElementById("loaderOverlay").style.display = "flex";
       const code = document.getElementById('agentCode').value.trim() || 'bizera';
+      const name = document.getElementById('customerName').value.trim();
+      const mobile = document.getElementById('customerMobile').value.trim();
       const errorMsg = document.getElementById('errorMsg');
       errorMsg.textContent = '';
-      currentAgentCode = code;
 
-      const scriptUrl = "https://script.google.com/macros/s/AKfycbyKkAvozxY-2PgEp-j1OhxJCP7r6oj_wcalbBt2BBznheWoH02fuGUTEwGlIljz0sNC/exec";
-      const callbackName = "handleResponse";
+      if (!name || !mobile) {
+        document.getElementById("loaderOverlay").style.display = "none";
+        errorMsg.textContent = "Please enter your name and mobile number.";
+        return;
+      }
 
-      const oldScript = document.getElementById('jsonpScript');
-      if (oldScript) oldScript.remove();
+      try {
+        // ✅ 1. Validate Agent
+        const agentRes = await fetch(`${AGENT_SCRIPT_URL}?code=${encodeURIComponent(code)}`);
+        const agentData = await agentRes.json();
 
-      const script = document.createElement('script');
-      script.src = `${scriptUrl}?code=${encodeURIComponent(code)}&callback=${callbackName}`;
-      script.id = "jsonpScript";
-      document.body.appendChild(script);
-    }
+        if (!agentData.valid) throw new Error("Invalid agent code.");
 
-    function handleResponse(data) {
-      document.getElementById("loaderOverlay").style.display = "none";
-      if (data.valid) {
-        const msg = `Hi, I'm interested in "${courseName}" by ${courseOwner}. My Agent Code is: ${currentAgentCode}`;
-        const waUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(msg)}`;
+        // ✅ 2. Submit Data
+        const submitUrl = `${SUBMIT_SCRIPT_URL}?action=submit&name=${encodeURIComponent(name)}&mobile=${encodeURIComponent(mobile)}&product=${encodeURIComponent(courseName)}&company=${encodeURIComponent(courseOwner)}&agent=${encodeURIComponent(code)}`;
+        const submitRes = await fetch(submitUrl);
+        const submitData = await submitRes.json();
+
+        if (!submitData.success) throw new Error("Something went wrong while submitting data.");
+
+        // ✅ 3. Redirect to WhatsApp
+        const msg = `Hi, I'm ${name} (${mobile}). I'm interested in "${courseName}" by ${courseOwner}. Agent Code: ${code}`;
+        const waUrl = `https://wa.me/${agentData.number || whatsappNumber}?text=${encodeURIComponent(msg)}`;
         window.location.href = waUrl;
-      } else {
-        document.getElementById('errorMsg').textContent = "Invalid agent code.";
+
+      } catch (err) {
+        errorMsg.textContent = err.message;
+      } finally {
+        document.getElementById("loaderOverlay").style.display = "none";
       }
     }
 
